@@ -1,1 +1,3 @@
 # TradingClubHFT
+
+Thomas 
