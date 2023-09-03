@@ -107,7 +107,7 @@ class NameCompiler:
 
 if __name__ == "__main__":
     wrds_username = 'Secrets'
-    wrds_password = 'Secrets'
+    wrds_password = 'Secrets' # test
     library_name = 'taqm_2021'  # Change to the desired library
 
     wrds_fetcher = WRDSDataFetcher(library_name, wrds_username, wrds_password)
