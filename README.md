@@ -1,3 +1,4 @@
 # TradingClubHFT
 
 Thomas 
+Arnaud
