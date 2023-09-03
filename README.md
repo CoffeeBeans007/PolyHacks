@@ -1,3 +1,5 @@
 # TradingClubHFT
 
 Thomas 
+Arnaud
+Achille
