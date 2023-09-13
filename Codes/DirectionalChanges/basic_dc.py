@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from typing import Dict
 
 
 class DirectionalChange:
@@ -188,3 +189,66 @@ class DirectionalChange:
 
     def calculateNDC(self, threshold):
         return len(self.calculateATMV(threshold))
+
+
+def prepare_data_dict(path: str) -> Dict[str, pd.DataFrame]:
+    """
+    Prépare un dictionnaire de DataFrames à partir d'un fichier Excel.
+
+    Cette fonction prend en entrée le chemin d'un fichier Excel et retourne un dictionnaire de DataFrames.
+    Chaque DataFrame est associé à une feuille du fichier Excel.
+
+    Parameters
+    ----------
+    path : str
+        Le chemin du fichier Excel à lire.
+
+    Returns
+    -------
+    dict[str, pd.DataFrame]
+        Un dictionnaire où chaque clé est le nom d'un index et la valeur associée est un DataFrame contenant les données de cet index.
+
+    Examples
+    --------
+    # prepare_data_dict("path/to/excel/file.xlsx")
+    {'Index1': DataFrame_object1, 'Index2': DataFrame_object2, ...}
+
+    """
+
+    # Lire les noms des feuilles dans le fichier Excel
+    xls = pd.ExcelFile(path)
+    sheet_names = xls.sheet_names
+
+    # Lire la feuille "Indices" pour obtenir les noms des index
+    df_idx = pd.read_excel(xls, sheet_name="Indices", index_col=0)
+
+    # Initialiser le dictionnaire pour stocker les DataFrames
+    data_dict = dict()
+
+    # Parcourir les index et remplir le dictionnaire avec les DataFrames associés
+    for idx in df_idx["Index"]:
+        if idx in sheet_names:
+            data_dict[idx] = pd.read_excel(xls, sheet_name=idx, index_col=0)
+            data_dict[idx].index = pd.to_datetime(data_dict[idx].index, format="%Y%m%d")
+        else:
+            print(f"La feuille pour l'index {idx} n'a pas été trouvée dans le fichier Excel.")
+
+    # Fermer le fichier Excel
+    xls.close()
+
+    return data_dict
+
+
+
+
+if __name__ == '__main__':
+    path = "../../Data/DC_data/Index_daily_close_2019_2023.xlsx"
+    threshold = 0.01
+
+    data_dict = prepare_data_dict(path)
+
+    df_aex25 = data_dict["AEX25"]
+
+    dc = DirectionalChange(df_aex25[['Close']])
+    dc.dc_pattern(threshold=threshold)
+
