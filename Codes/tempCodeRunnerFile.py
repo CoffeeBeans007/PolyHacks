@@ -20,7 +20,7 @@ print(table_list)
 
 # Explore the structure of a specific table within the library
 # Replace 'your_table_name' with the name of the table you want to explore
-table_name = 'your_table_name'
+table_name = 'complete_nbbo_20210104'
 table_info = conn.get_table(library=library_name, table=table_name)
 print(f"Structure of the table '{table_name}' in library '{library_name}':")
 print(table_info)
