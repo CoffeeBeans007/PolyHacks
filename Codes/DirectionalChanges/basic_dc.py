@@ -2,6 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from typing import Dict
+from typing import List
+from datetime import datetime
+import streamlit as st
+import plotly.graph_objects as go
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 class DirectionalChange:
@@ -61,7 +66,7 @@ class DirectionalChange:
                     # No DC event founded yet, the last event flag should pass into current one.
 
                     if state_dict[-1] == 'up_DC':
-                        # if last state is upward DC event, current sate should be changed into upward OS event.
+                        # if last state is upward DC event, current state should be changed into upward OS event.
                         state_dict.append('up_OS')
                     else:
                         # if last state is upward OS event, continue
@@ -121,6 +126,7 @@ class DirectionalChange:
         self.listExtreme = [listPlot]
         x_all = df['ts']
         if plot: plt.plot(x_all.index.map(lambda x: x[0]), x_all, 'cornflowerblue')
+
         for idx, row in df.iterrows():
 
             if idx == 0:
@@ -238,17 +244,37 @@ def prepare_data_dict(path: str) -> Dict[str, pd.DataFrame]:
 
     return data_dict
 
+# Main Streamlit App
+def main():
+    st.title('Directional Change Analyzer')
 
+    path = "../../Data/DC_data/Index_daily_close_2019_2023.xlsx"
+    data_dict = prepare_data_dict(path)
+
+    # Choix de l'indice
+    index_choice = st.selectbox(
+        'Select Index:',
+        list(data_dict.keys())
+    )
+
+    # Choix du seuil
+    threshold = st.slider('Set Threshold:', min_value=0.0, max_value=0.2, value=0.01, step=0.001)
+
+    # Calculs
+    df_selected = data_dict[index_choice][['Close']]
+    dc = DirectionalChange(df_selected)
+    df = dc.dc_pattern(threshold=threshold)
+
+    # Affichage du DataFrame
+    st.dataframe(df)
+
+    # Visualisation (Assumant que votre classe a une méthode plotDC qui utilise matplotlib ou une autre bibliothèque compatible)
+    st.write('## Visualization')
+    fig = dc.plotDC(threshold=threshold, plot=True)
+    st.pyplot(fig)
 
 
 if __name__ == '__main__':
-    path = "../../Data/DC_data/Index_daily_close_2019_2023.xlsx"
-    threshold = 0.01
+    main()
 
-    data_dict = prepare_data_dict(path)
-
-    df_aex25 = data_dict["AEX25"]
-
-    dc = DirectionalChange(df_aex25[['Close']])
-    dc.dc_pattern(threshold=threshold)
 
