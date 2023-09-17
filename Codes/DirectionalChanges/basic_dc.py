@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from typing import Dict
-from typing import List
-from datetime import datetime
+from typing import Dict, List, Tuple
+import matplotlib.lines as mlines
 import streamlit as st
-import plotly.graph_objects as go
+
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
@@ -112,88 +111,153 @@ class DirectionalChange:
         return pd.DataFrame(event_dict, index=[self.data.index],
                             columns=['DC:Threshold{}'.format(threshold), 'State:Threshold{}'.format(threshold)])  # Dict
 
-    def plotDC(self, threshold, plot=True):
-        '''
+    def plotDC(self, threshold: float, plot: bool = True) -> None:
+        """
         Visualizing DC upon TS data.
-        '''
-        df = self.dc_pattern(threshold)
 
+        Parameters:
+        - threshold: float
+            Threshold value for DC pattern.
+        - plot: bool, optional (default=True)
+            Flag to control whether to plot the graph.
+        """
+        df = self.dc_pattern(threshold)
         df['ts'] = list(self.data['Close'])
         df['shift'] = df.iloc[:, 1].shift(-1)
-        begin = df.iloc[0, :]
-        listPlot = [df.index[0][0], begin['ts']]
-        if plot: plt.figure(figsize=(25, 12))
+
+        initial_row = df.iloc[0, :]
+        listPlot = [df.index[0][0], initial_row['ts']]
+        legend_handles = []
+        added_labels = set()
+
+        if plot:
+            plt.figure(figsize=(25, 12))
+            plt.title('DC Patterns vs Time Series Data', fontsize=20)
+            plt.xlabel('Date', fontsize=14)
+            plt.ylabel('Price', fontsize=14)
+
         self.listExtreme = [listPlot]
         x_all = df['ts']
-        if plot: plt.plot(x_all.index.map(lambda x: x[0]), x_all, 'cornflowerblue')
+
+        if plot:
+            plt.plot(x_all.index.map(lambda x: x[0]), x_all, 'cornflowerblue', label='Time Series Data')
+
+        color_map = {
+            ('up_OS', 'down_DC'): 'green',
+            ('down_DC', 'down_OS'): 'orange',
+            ('down_OS', 'up_DC'): 'red',
+            ('up_DC', 'up_OS'): 'lightgreen',
+            ('up_DC', 'down_DC'): 'black',
+            ('down_DC', 'up_DC'): 'blue'
+        }
+
+        label_map = {
+            'green': 'Up OS to Down DC',
+            'orange': 'Down DC to Down OS',
+            'red': 'Down OS to Up DC',
+            'lightgreen': 'Up DC to Up OS',
+            'black': 'Up DC to Down DC',
+            'blue': 'Down DC to Up DC'
+        }
 
         for idx, row in df.iterrows():
-
             if idx == 0:
                 continue
-            time_str = idx[0].to_pydatetime().date()
-            if row[1] == 'up_OS' and row[-1] == 'down_DC':
-                self.listExtreme.append([idx[0], row['ts']])
+
+            current_color = color_map.get((row[1], row[-1]), None)
+            if current_color:
+                if row[1] in {'up_OS', 'down_OS', 'up_DC', 'down_DC'}:
+                    self.listExtreme.append([idx[0], row['ts']])
+
                 if plot:
-                    plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], 'lightgreen')
+                    plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], current_color)
+
+                    if current_color not in added_labels:
+                        legend_handles.append(
+                            mlines.Line2D([], [], color=current_color, label=label_map[current_color]))
+                        added_labels.add(current_color)
+
                 listPlot = [idx[0], row['ts']]
 
-            if row[1] == 'down_DC' and row[-1] == 'down_OS':
-                if plot:
-                    plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], 'tomato')
-                listPlot = [idx[0], row['ts']]
+        if plot:
+            plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], 'lightgreen')
+            legend_handles.append(mlines.Line2D([], [], color='cornflowerblue', label='Time Series Data'))
+            plt.legend(handles=legend_handles, fontsize='large')
+            plt.show()
 
-            if row[1] == 'down_OS' and row[-1] == 'up_DC':
-                self.listExtreme.append([idx[0], row['ts']])
-                if plot:
-                    plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], 'lightgreen')
-                listPlot = [idx[0], row['ts']]
-
-            if row[1] == 'up_DC' and row[-1] == 'up_OS':
-                if plot:
-                    plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], 'tomato')
-                listPlot = [idx[0], row['ts']]
-
-            if row[1] == 'up_DC' and row[-1] == 'down_DC':
-                self.listExtreme.append([idx[0], row['ts']])
-                if plot: plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], 'tomato')
-                listPlot = [idx[0], row['ts']]
-
-            if row[1] == 'down_DC' and row[-1] == 'up_DC':
-                self.listExtreme.append([idx[0], row['ts']])
-                if plot: plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], 'tomato')
-                listPlot = [idx[0], row['ts']]
-
-        if plot: plt.plot([listPlot[0], idx[0]], [listPlot[1], row['ts']], 'lightgreen')
         self.listExtreme.append([idx[0], row['ts']])
 
-        if plot: plt.show()
+    def calculateATMV(self, threshold: float) -> List[Tuple[Tuple, float]]:
+        """
+        Calculate the Absolute Theoretical Movement Value (ATMV) for each directional change.
 
-    def calculateATMV(self, threshold):
+        Parameters:
+        - threshold: float
+            Threshold value for identifying directional changes.
+
+        Returns:
+        - List[Tuple[Tuple, float]]
+            A list containing pairs of date ranges and their corresponding ATMV.
+        """
         aTMV = []
         self.plotDC(threshold, plot=False)
         previous = self.listExtreme[0]
-        for turningPoint in self.listExtreme[1:]:
-            currentATMV = (turningPoint[1] - previous[1]) / previous[1] / threshold
 
-            aTMV.append([[previous[0], turningPoint[0]], np.abs(currentATMV)])
+        for turningPoint in self.listExtreme[1:]:
+            currentATMV = np.abs((turningPoint[1] - previous[1]) / previous[1] / threshold)
+            aTMV.append([[previous[0], turningPoint[0]], currentATMV])
             previous = turningPoint
+
         return aTMV
 
-    def calculateAR(self, threshold):
+    def calculateAR(self, threshold: float) -> List[Tuple[Tuple, float]]:
+        """
+        Calculate the Adjusted Return (AR) for each directional change.
+
+        Parameters:
+        - threshold: float
+            Threshold value for identifying directional changes.
+
+        Returns:
+        - List[Tuple[Tuple, float]]
+            A list containing pairs of date ranges and their corresponding AR.
+        """
         aTMV = self.calculateATMV(threshold)
         aR = list(map(lambda x: x[1] / ((x[0][1] - x[0][0]).days), aTMV))
         timeSpan = list(zip(*aTMV))[0]
         aR = list(zip(timeSpan, aR))
+
         return aR
 
-    def calculateCoastline(self, threshold):
+    def calculateCoastline(self, threshold: float) -> float:
+        """
+        Calculate the total 'coastline', which is the sum of all ATMVs.
+
+        Parameters:
+        - threshold: float
+            Threshold value for identifying directional changes.
+
+        Returns:
+        - float
+            The sum of all ATMVs.
+        """
         aTMV = self.calculateATMV(threshold)
         Coastline = sum(list(zip(*aTMV))[1])
 
         return Coastline
 
-    def calculateNDC(self, threshold):
+    def calculateNDC(self, threshold: float) -> int:
+        """
+        Calculate the total number of directional changes.
+
+        Parameters:
+        - threshold: float
+            Threshold value for identifying directional changes.
+
+        Returns:
+        - int
+            The total number of directional changes.
+        """
         return len(self.calculateATMV(threshold))
 
 
@@ -244,6 +308,21 @@ def prepare_data_dict(path: str) -> Dict[str, pd.DataFrame]:
 
     return data_dict
 
+
+def convert_to_dataframe(atmv_list, ar_list):
+    # Format time spans as string
+    atmv_list = [[f"{start.strftime('%Y-%m-%d')} to {end.strftime('%Y-%m-%d')}", val] for (start, end), val in
+                 atmv_list]
+    ar_list = [[f"{start.strftime('%Y-%m-%d')} to {end.strftime('%Y-%m-%d')}", val] for (start, end), val in ar_list]
+
+    # Convert ATMV list to DataFrame
+    atmv_df = pd.DataFrame(atmv_list, columns=['Time Span', 'ATMV'])
+
+    # Convert AR list to DataFrame
+    ar_df = pd.DataFrame(ar_list, columns=['Time Span', 'AR'])
+
+    return atmv_df, ar_df
+
 # Main Streamlit App
 def main():
     st.title('Directional Change Analyzer')
@@ -251,30 +330,57 @@ def main():
     path = "../../Data/DC_data/Index_daily_close_2019_2023.xlsx"
     data_dict = prepare_data_dict(path)
 
-    # Choix de l'indice
+    # Select the index
     index_choice = st.selectbox(
         'Select Index:',
         list(data_dict.keys())
     )
 
-    # Choix du seuil
+    # Select the threshold
     threshold = st.slider('Set Threshold:', min_value=0.0, max_value=0.2, value=0.01, step=0.001)
 
-    # Calculs
+    # Perform calculations
     df_selected = data_dict[index_choice][['Close']]
     dc = DirectionalChange(df_selected)
     df = dc.dc_pattern(threshold=threshold)
 
-    # Affichage du DataFrame
+    # Display DataFrame
+    st.write('## Data Table')
     st.dataframe(df)
 
-    # Visualisation (Assumant que votre classe a une méthode plotDC qui utilise matplotlib ou une autre bibliothèque compatible)
+    # Display Visualization
     st.write('## Visualization')
-    fig = dc.plotDC(threshold=threshold, plot=True)
-    st.pyplot(fig)
+    dc.plotDC(threshold=threshold, plot=True)  # Assuming plotDC uses plt.show()
+    st.pyplot()
 
+    # Calculate and display ATMV
+    st.write('## Absolute Theoretical Movement Value (ATMV)')
+    st.write('The ATMV is a measure of the price movement between directional changes relative to the threshold.')
+    atmvs = dc.calculateATMV(threshold=threshold)
+    atmv_df, _ = convert_to_dataframe(atmvs, [])
+    st.dataframe(atmv_df)
+
+    # Calculate and display AR
+    st.write('## Adjusted Return (AR)')
+    st.write('Adjusted Return is the rate of return for each directional change, normalized by its time duration.')
+    ars = dc.calculateAR(threshold=threshold)
+    _, ar_df = convert_to_dataframe([], ars)
+    st.dataframe(ar_df)
+
+    # Calculate and display Coastline
+    st.write('## Coastline')
+    st.write('The Coastline is the cumulative sum of all the ATMVs and represents the overall price movement.')
+    coastline = dc.calculateCoastline(threshold=threshold)
+    st.write(coastline)
+
+    # Calculate and display Number of Directional Changes (NDC)
+    st.write('## Number of Directional Changes (NDC)')
+    st.write('The NDC is the total count of directional changes and can serve as an indicator of market volatility.')
+    ndc = dc.calculateNDC(threshold=threshold)
+    st.write(ndc)
 
 if __name__ == '__main__':
     main()
+
 
 
