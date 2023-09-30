@@ -18,28 +18,6 @@ class Backtest():
         self.log = log
 
     def movingAverage(stock_symbol:str, start_date, end_date,reactor:float):
-        """
-    Calculate portfolio metrics for a given stock symbol within a specified date range.
-
-    Parameters
-    ----------
-    stock_symbol : str
-        The stock symbol or ticker of the stock to analyze.
-    start_date : str
-        The start date for the analysis in the format 'YYYY-MM-DD UTC'.
-    end_date : str
-        The end date for the analysis in the format 'YYYY-MM-DD UTC'.
-    reactor : float
-        Reactor defines how fast the moving average reacts to the price change.
-        A higher reactor means a faster moving average.
-
-    Returns
-    -------
-    float
-        The total profit of the portfolio.
-    DataFrame
-        Portfolio statistics.
-    """
         reactor=1-reactor
         if 0<reactor<0.25:
             move1=5
@@ -54,7 +32,7 @@ class Backtest():
             move1=50
             move2=200
         # Download stock data
-        
+        # 
         stockPrice = vbt.YFData.download(stock_symbol, start=start_date, end=end_date).get('Close')
         
         # Calculate moving averages
