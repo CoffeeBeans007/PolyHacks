@@ -107,6 +107,38 @@ class OHLCDataManager:
         else:
             print("Could not infer the frequency of the data.")
 
+    def save_data(self, path_to_save: str = None, file_extension: str = None):
+        """
+        Save the OHLC data to a specified path.
+
+        :param path_to_save: The file path to save the data.
+            If not provided, use the original path_to_data attribute.
+        :param file_extension: The file extension for saving the data.
+            If not provided, use the original data_extension attribute.
+        """
+        if path_to_save is None:
+            path_to_save = self.path_to_data
+
+        if file_extension is None:
+            file_extension = self.data_extension
+
+        # Determine the complete path to save the data
+        complete_path = f"{path_to_save}.{file_extension}"
+
+        try:
+            if file_extension == 'csv':
+                self.data.to_csv(complete_path)
+            elif file_extension == 'xlsx':
+                self.data.to_excel(complete_path)
+            else:
+                print(f"Unsupported file extension: {file_extension}. Data not saved.")
+                return
+
+            print(f"Data successfully saved to {complete_path}.")
+
+        except Exception as e:
+            print(f"An error occurred while saving the data: {e}")
+
 
 if __name__ == '__main__':
 
