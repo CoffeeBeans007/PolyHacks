@@ -2,6 +2,7 @@ import time
 import wrds
 from typing import Optional, Union
 from pandas import DataFrame
+import pandas as pd
 
 
 class WRDSDataFetcher:
@@ -23,10 +24,9 @@ class WRDSDataFetcher:
         The WRDS connection object.
     """
 
-    def __init__(self, library_name: str, username: str, password: str) -> None:
+    def __init__(self, library_name: str, username: str) -> None:
         self.library_name = library_name
         self.username = username
-        self.password = password
         self.conn = None
 
     def connect(self) -> None:
@@ -74,6 +74,20 @@ class WRDSDataFetcher:
             self.conn.close()
             print("Connection to WRDS closed.")
 
+    def fundaDataFetch(self, comp_cusip: str):
+        ccomrt=self.conn.raw_sql(
+
+            f"""
+            select ITEM5601, ITEM7011, ITEM7210, ITEM7220, ITEM7230, ITEM7240, ITEM7250, ITEM8101, ITEM8106, ITEM8111, ITEM8121, ITEM8136, ITEM8226, ITEM8231, ITEM8236, ITEM8306, ITEM8316, ITEM8336, ITEM8366, ITEM8371, ITEM8401, ITEM8406, ITEM8601, ITEM8611, ITEM8621, ITEM8626, ITEM8631, ITEM8636, ITEM6004
+
+            from trws.wrds_ws_funda
+
+            where item6004='{comp_cusip}' 
+            """)
+        ccomrt.fillna(method='bfill', inplace=True)
+        ccomrt_first_row=ccomrt.iloc[len(ccomrt)-2] if not ccomrt.empty else None
+        print(ccomrt_first_row)
+
 
 class NameCompiler:
     """
@@ -104,18 +118,16 @@ class NameCompiler:
         month = time.strptime(month, '%b').tm_mon
         return f"{dataset}_{year}{month:02}{day:02}"
 
+    
+
+
 
 if __name__ == "__main__":
     wrds_username = 'Secrets'
-    wrds_password = 'Secrets' # test, second test..
-    library_name = 'taqm_2021'  # Change to the desired library
-
-    wrds_fetcher = WRDSDataFetcher(library_name, wrds_username, wrds_password)
+    wrds_password = 'Secrets'
+    wrds_username='' # test, second test..  # Change to the desired library
+    comp_cusip='037833100'
+    wrds_fetcher=WRDSDataFetcher(wrds_username,wrds_password)
     wrds_fetcher.connect()
-
-    dataset_name = NameCompiler.create_query("complete_nbbo", 2021, 'Jun', 4)
-
-    dataset = wrds_fetcher.get_dataset(dataset_name)
-    print(dataset)
-
+    wrds_fetcher.fundaDataFetch(comp_cusip)
     wrds_fetcher.close()
