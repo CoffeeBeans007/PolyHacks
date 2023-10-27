@@ -46,6 +46,8 @@ def getCompInfo(year):
         print(r_df)
         #r_df.to_csv("output.csv")
     else: print("No data found in the current request")
+    return r_df
 
 getCompInfo(2022)
 conn.close()
+
