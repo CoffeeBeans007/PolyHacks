@@ -1,6 +1,85 @@
+import numpy as np
+import pandas as pd
 import requests
 
-import requests
+
+def json_to_dataframe_commodities(json_data):
+    """
+    Converts the given JSON data into a DataFrame with date and value columns for oil prices.
+    
+    Parameters:
+    - json_data (dict): The JSON data with the structure described.
+    
+    Returns:
+    - pd.DataFrame: The DataFrame with date and value columns for oil prices.
+    """
+    # Extracting data
+    data_list = json_data.get('data', [])
+    
+    # Extracting dates and values
+    dates = [entry['date'] for entry in data_list]
+    values = [float(entry['value']) for entry in data_list]
+    
+    # Creating DataFrame
+    df = pd.DataFrame({
+        'date': dates,
+        'value': values
+    })
+
+    # Setting date as index
+    df['date'] = pd.to_datetime(df['date'])
+    df.set_index('date', inplace=True)
+
+    return df
+
+def json_to_dataframe_price(json_data):
+    """
+    Converts the given JSON data into a DataFrame with date and OHLC values.
+    
+    Parameters:
+    - json_data (dict): The JSON data with the structure described.
+    
+    Returns:
+    - pd.DataFrame: The DataFrame with date and OHLC values.
+    """
+    # Dynamically find the key for the time series data
+    time_series_key = next((key for key in json_data.keys() if "Time Series" in key), None)
+    if time_series_key is None:
+        raise ValueError("No 'Time Series' key found in the provided JSON data.")
+    
+    # Extracting time series data
+    time_series_data = json_data.get(time_series_key, {})
+    
+    # Creating lists to hold data
+    dates = []
+    open_prices = []
+    high_prices = []
+    low_prices = []
+    close_prices = []
+
+    for date, data in time_series_data.items():
+        dates.append(date)
+        open_prices.append(float(data['1. open']))
+        high_prices.append(float(data['2. high']))
+        low_prices.append(float(data['3. low']))
+        close_prices.append(float(data['4. close']))
+
+    # Creating DataFrame
+    df = pd.DataFrame({
+        'date': dates,
+        'open': open_prices,
+        'high': high_prices,
+        'low': low_prices,
+        'close': close_prices
+    })
+
+    # Setting date as index
+    df['date'] = pd.to_datetime(df['date'])
+    df.set_index('date', inplace=True)
+
+    return df
+
+
 
 class AlphaVantage:
     
@@ -30,6 +109,23 @@ class AlphaVantage:
         """
         Utility function to send a request and get the response.
         """
+        response = requests.get(self.BASE_URL, params=params)
+        
+        if datatype == "json":
+            return response.json()
+        else:
+            return response.text
+        
+    def _fetch_data(self, function, symbol, outputsize=None, datatype="json"):
+        params = {
+            "function": function,
+            "symbol": symbol,
+            "outputsize": outputsize,
+            "datatype": datatype,
+            "apikey": self.api_key
+        }
+        # Filter out None values
+        params = {k: v for k, v in params.items() if v is not None}
         response = requests.get(self.BASE_URL, params=params)
         
         if datatype == "json":
@@ -126,13 +222,13 @@ class StocksData(AlphaVantage):
         super().__init__(api_key)
     
     def get_daily_adjusted_data(self, symbol, outputsize="compact", datatype="json"):
-        return self._fetch_data("TIME_SERIES_DAILY_ADJUSTED", symbol, outputsize, datatype)
+        return json_to_dataframe_price(self._fetch_data("TIME_SERIES_DAILY_ADJUSTED", symbol, outputsize, datatype))
     
     def get_weekly_adjusted_data(self, symbol, datatype="json"):
-        return self._fetch_data("TIME_SERIES_WEEKLY_ADJUSTED", symbol, datatype=datatype)
+        return json_to_dataframe_price(self._fetch_data("TIME_SERIES_WEEKLY_ADJUSTED", symbol, datatype=datatype))
 
     def get_monthly_adjusted_data(self, symbol, datatype="json"):
-        return self._fetch_data("TIME_SERIES_MONTHLY_ADJUSTED", symbol, datatype=datatype)
+        return json_to_dataframe_price(self._fetch_data("TIME_SERIES_MONTHLY_ADJUSTED", symbol, datatype=datatype))
 
 
 class CryptocurrencyData(AlphaVantage):
@@ -156,7 +252,7 @@ class CryptocurrencyData(AlphaVantage):
             "datatype": datatype,
             "apikey": self.api_key
         }
-        return self._get_response(params, datatype)
+        return json_to_dataframe_price(self._get_response(params, datatype))
 
     def get_digital_currency_daily(self, symbol, market):
         params = {
@@ -195,37 +291,37 @@ class Commodities(AlphaVantage):
     #By default, interval=monthly. Strings monthly, quarterly, and annual are accepted.
     
     def get_crude_oil_WTI(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("WTI", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("WTI", interval, datatype))
 
     def get_crude_oil_brent(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("BRENT", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("BRENT", interval, datatype))
 
     def get_natural_gas(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("NATURAL_GAS", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("NATURAL_GAS", interval, datatype))
 
     def get_copper_price(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("COPPER", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("COPPER", interval, datatype))
 
     def get_aluminum_price(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("ALUMINUM", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("ALUMINUM", interval, datatype))
 
     def get_wheat_price(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("WHEAT", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("WHEAT", interval, datatype))
 
     def get_corn_price(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("CORN", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("CORN", interval, datatype))
 
     def get_cotton_price(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("COTTON", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("COTTON", interval, datatype))
 
     def get_sugar_price(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("SUGAR", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("SUGAR", interval, datatype))
 
     def get_coffee_price(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("COFFEE", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("COFFEE", interval, datatype))
 
     def get_all_commodities_index(self, interval="monthly", datatype="json"):
-        return self._fetch_commodity_data("ALL_COMMODITIES", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_commodity_data("ALL_COMMODITIES", interval, datatype))
 
     def _fetch_commodity_data(self, function, interval, datatype):
         params = {
@@ -251,34 +347,34 @@ class EconomicIndicators(AlphaVantage):
         super().__init__(api_key)
 
     def get_real_gdp(self, interval="annual", datatype="json"):
-        return self._fetch_economic_data("REAL_GDP", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("REAL_GDP", interval, datatype))
 
     def get_real_gdp_per_capita(self, datatype="json"):
-        return self._fetch_economic_data("REAL_GDP_PER_CAPITA", datatype=datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("REAL_GDP_PER_CAPITA", datatype=datatype))
 
     def get_treasury_yield(self, interval="monthly", maturity="10year", datatype="json"):
-        return self._fetch_economic_data("TREASURY_YIELD", interval, datatype, maturity=maturity)
+        return json_to_dataframe_commodities(self._fetch_economic_data("TREASURY_YIELD", interval, datatype, maturity=maturity))
 
     def get_federal_funds_rate(self, interval="monthly", datatype="json"):
-        return self._fetch_economic_data("FEDERAL_FUNDS_RATE", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("FEDERAL_FUNDS_RATE", interval, datatype))
 
     def get_cpi(self, interval="monthly", datatype="json"):
-        return self._fetch_economic_data("CPI", interval, datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("CPI", interval, datatype))
 
     def get_inflation(self, datatype="json"):
-        return self._fetch_economic_data("INFLATION", datatype=datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("INFLATION", datatype=datatype))
 
     def get_retail_sales(self, datatype="json"):
-        return self._fetch_economic_data("RETAIL_SALES", datatype=datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("RETAIL_SALES", datatype=datatype))
 
     def get_durables(self, datatype="json"):
-        return self._fetch_economic_data("DURABLES", datatype=datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("DURABLES", datatype=datatype))
 
     def get_unemployment(self, datatype="json"):
-        return self._fetch_economic_data("UNEMPLOYMENT", datatype=datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("UNEMPLOYMENT", datatype=datatype))
 
     def get_nonfarm_payroll(self, datatype="json"):
-        return self._fetch_economic_data("NONFARM_PAYROLL", datatype=datatype)
+        return json_to_dataframe_commodities(self._fetch_economic_data("NONFARM_PAYROLL", datatype=datatype))
 
     def _fetch_economic_data(self, function, interval=None, datatype="json", maturity=None):
         params = {

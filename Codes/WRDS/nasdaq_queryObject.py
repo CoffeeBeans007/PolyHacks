@@ -41,6 +41,7 @@ class NasdaqData:
             self.data = r_df
             print(r_df)
             # r_df.to_csv("output.csv")
+            
         else: 
             print("No data found in the current request")
             return None
