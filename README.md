@@ -1,7 +1,4 @@
-# TradingClubHFT
+## Let's win dis bich
 
-Thomas 
-Arnaud
-Achille
-JC
-
+# Comment installer du data kaggle sur notre ordi
+https://www.kaggle.com/discussions/general/74235 
