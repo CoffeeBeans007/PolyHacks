@@ -1,4 +1,4 @@
-# 🏆 Let's Win This, Shall We? 🚀
+# 🏆 Let's Win This Bitch, Shall We? 🚀
 
 ## How to Install Kaggle Data on Your Computer?
 
