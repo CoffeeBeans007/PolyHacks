@@ -4,6 +4,9 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 
+import sys
+sys.path.append('Data')
+
 def return_writer(): 
     t = pd.read_csv("Data\tot_ret.csv",sep=";")
     t_date = t["Date"]
@@ -58,13 +61,12 @@ def macro_clustering(df, print_graphs = False) :
     # Afficher les résultats
     return df
 
-df_macro = pd.read_csv('Data\Macro_datas.csv',sep=";")  
+df_macro = pd.read_csv("Macro_datas.csv")  
 df_macro = df_macro.iloc[:48,1:]
 # nombre de données macro à prendre est à determiner 
 
-# df_macro = macro_clustering(df_macro,True) 
-# clust1 = df_macro[df_macro["cluster"]==1]
-# print(clust1)
-#return_writer()
-t = pd.read_csv("Data/tot_ret.csv",sep=";")
-print(t)
+df_macro = macro_clustering(df_macro,True) 
+clust1 = df_macro[df_macro["cluster"]==1]
+print(clust1)
+
+
