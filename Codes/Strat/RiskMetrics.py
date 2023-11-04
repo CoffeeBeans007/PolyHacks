@@ -1,11 +1,25 @@
 import pandas as pd
+import datetime
+import os
+import numpy as np
+from typing import Union, Set, Any
+import math
 
-class RiskMetrics:
-    def __init__(self,benchmark_directory, returns_directory) -> None:
-        self.benchmark = pd.read_csv(benchmark_directory)
-        self.benchmark['benchmark_return'] = self.benchmark['benchmark_return'] - 1
-        self.returns = pd.read_csv(returns_directory)
-        
-if __name__ == "__main__":
-    test = RiskMetrics("Data/benchmark/SPY_returns.csv")
-    print(test.benchmark)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+pd.set_option('display.width', None)
+
+class RiskMetrics(object):
+    def __init__(self, daily_data: pd.DataFrame, benchmark_name: str, frequency: str = "D", years_metrics_list: list = None,
+                 weekday_resampling: str = "FRI"):
+
+        self.daily_data = daily_data
+        self.benchmark_name = benchmark_name
+        self.frequency = frequency
+        self.years_metrics_list = years_metrics_list
+        self.weekday_resampling = weekday_resampling
+
+
+
+if __name__ == '__main__':
+    pass
