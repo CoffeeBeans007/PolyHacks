@@ -1,0 +1,136 @@
+DATA FOR MACHINE LEARNING - TP1
+
+Document : CLI.csv
+Variable "CLI" : Composite leading indicator  
+Source :https://data.oecd.org/leadind/composite-leading-indicator-cli.htm
+Le CLI est conçu pour fournir des signaux précoces des points de retournement dans les cycles économiques, montrant les fluctuations de l'activité économique autour de son niveau potentiel à long terme. 
+
+Document: Constant_maturity_US_yield.csv
+Variables "CM_1M", "CM_3M", "CM_6M", "CM_1Y", "CM_2Y", "CM_3Y", "CM_5Y" , "CM_7Y", "CM_10Y", "CM_20Y" and "CM_30Y"  : Constant maturity US Yield
+Sources: 
+https://fred.stlouisfed.org/series/DGS1MO
+https://fred.stlouisfed.org/series/DGS3MO
+https://fred.stlouisfed.org/series/DGS6MO
+https://fred.stlouisfed.org/series/DGS1
+https://fred.stlouisfed.org/series/DGS2
+https://fred.stlouisfed.org/series/DGS3
+https://fred.stlouisfed.org/series/DFII5
+https://fred.stlouisfed.org/series/DFII7
+https://fred.stlouisfed.org/series/DFII10
+https://fred.stlouisfed.org/series/DFII20
+https://fred.stlouisfed.org/series/DFII30
+Modification : changer la fréquence pour "monthly" dans la section "Edit graph" avant
+d'importer les données
+Les "Constant Maturity US Yields" font référence aux taux de rendement des obligations du gouvernement américain avec des échéances constantes, ce qui signifie que ces taux sont mesurés pour des périodes spécifiques (par exemple, 1 an, 5 ans, 10 ans, etc.) plutôt que pour des échéances fixes. Ces taux sont souvent utilisés comme indicateurs clés dans l'analyse financière et l'évaluation des conditions du marché. Ils sont généralement considérés comme un baromètre de l'appétit pour le risque et de la santé globale de l'économie et sont essentiels pour comprendre les anticipations du marché en matière de taux d'intérêt et leur impact sur l'économie.
+
+Document: DJ1990.CSV
+Variables "DJ" et "Volume_DJ" 
+Source : Bloomberg -> Se connecter -> Ticker : INDU:IND 
+                   #-> Fonction : Historical Prices
+                   #-> Select monthly data
+Le DJIA est un indice boursier qui mesure la performance d'un panier d'actions de 30 grandes entreprises américaines. Il est souvent utilisé comme baromètre de la santé du marché boursier et, par extension, de l'économie américaine. Le volume de négociation représente la quantité totale d'actions échangées sur une période donnée. Il peut être un indicateur de l'activité et de l'intérêt des investisseurs sur le marché.
+
+Document : FEDFUNDS.csv
+Variable "RF_rate"  : Federal Funds Effective Rate
+Source :#https://fred.stlouisfed.org/series/FEDFUNDS
+Le taux directeur est le taux d'intérêt central sur le marché financier 
+aux États-Unis. Le taux directeur des États-Unis (Federal Funds Rate) est essentiel pour prédire la courbe des taux car il influence directement les taux d'intérêt à court terme, ce qui a un impact significatif sur la forme et l'évolution de la courbe des taux. Les changements dans le taux directeur indiquent les orientations de la politique monétaire de la Réserve fédérale, ce qui permet aux investisseurs d'anticiper les mouvements futurs des taux d'intérêt et d'ajuster en conséquence leurs stratégies d'investissement.
+
+Document : fredgraph-AAAtoBBB.csv
+Variables 'AAA', 'AA', 'A' et 'BBB' : ICE BofA AAA, AA, A and BBB US Corporate Index Effective Yields
+Sources: 
+https://fred.stlouisfed.org/series/BAMLC0A1CAAAEY
+https://fred.stlouisfed.org/series/BAMLC0A2CAAEY
+https://fred.stlouisfed.org/series/BAMLC0A4CBBBEY
+https://fred.stlouisfed.org/series/BAMLC0A3CAEY
+Modification : changer la fréquence pour "monthly" dans la section "Edit graph" avant
+d'importer les données
+La variable AAA représentent le rendement effectif de l'indice ICE BofA AAA US Corporate, une sous-catégorie de l'indice ICE BofA US Corporate Master Index qui suit la performance des titres de créance d'entreprises notés en dollars américains et classés en catégorie d'investissement de qualité supérieure, publiquement émis sur le marché intérieur des États-Unis. Cette sous-catégorie inclut tous les titres ayant une notation de qualité d'investissement AAA. Idem pour les 3 autres catégories respectivement. Ces données sur le rendement des obligations d'entreprises peuvent fournir des indications utiles sur les tendances du marché et les conditions économiques actuelles, ce qui peut aider à anticiper les mouvements de la courbe des rendements des obligations gouvernementales. De plus,  Les données sur le rendement des obligations d'entreprises sont généralement disponibles en temps réel, ce qui permet aux investisseurs et aux analystes de suivre les évolutions du marché en direct et de réagir rapidement à de nouveaux événements ou données économiques.
+
+Document : GDP.csv
+Variable "GDP" : Gross Domestic Product
+Source : https://fred.stlouisfed.org/series/GDP
+Le PIB inclut la valeur de tous les biens et services produits par les entreprises, les particuliers, et le gouvernement, qu'ils soient destinés à la consommation, à l'investissement, ou à l'exportation. Il exclut les transactions financières et les transferts sociaux.Il est pertinent pour la prédiction des courbes de rendement des obligations gouvernementales car le niveau de PIB d'un pays peut influencer la perception des investisseurs sur la solvabilité de ce pays et des réactions du marché. Puisque les données sont disponible seulement trimestriellement, nous avons assumer 
+le même PBI pour les 3 mois.
+ 
+Document : hqm_qh_pars.csv
+Variables "High_Qua_2Y", "High_Qua_5Y","High_Qua_10Y" et"High_Qua_30Y" :
+HQM Corporate Bond Yield Curve Par Yields, end of month: 1984-Present
+Source : #https://home.treasury.gov/data/treasury-coupon-issues-and-corporate-bond-yield-curve/corporate-bond-yield-curve
+La courbe des taux HQM (High Quality Market) des obligations d'entreprises de haute qualité est pertinente car elle offre des indications cruciales sur les préférences des investisseurs en matière de risque, les attentes d'inflation et les réactions aux événements économiques majeurs. 
+
+Document : monthly_economic_indicator.csv
+Variable "Ind_Prod" : Industrial Production: Total Index
+Source : https://fred.stlouisfed.org/series/INDPRO
+L'Indice Total de la Production Industrielle est pertinent pour prédire la courbe des taux car il fournit des informations cruciales sur le niveau de l'activité économique et est étroitement suivi par les banques centrales et les marchés financiers. Il peut servir d'indicateur avancé pour les tendances économiques plus larges, qui, à leur tour, influent sur les taux d'intérêt et, par conséquent, sur la forme de la courbe des taux.
+
+
+Variable "Perso_Cons_Exp" : Personal Consumption Expenditures 
+Source : https://fred.stlouisfed.org/series/PCE
+Les Dépenses de Consommation Personnelles (PCE) sont pertinentes pour prédire la courbe des taux car elles fournissent des indications cruciales sur la demande des consommateurs, la santé de l'économie et les tendances de la croissance. Elles influent sur l'inflation et ont des implications directes pour la politique monétaire, ce qui, à son tour, affecte les taux d'intérêt et la forme de la courbe des taux.
+
+
+Variable "CPI" : Consumer Price Index for All Urban Consumers: All Items in U.S. City Average
+Source : https://fred.stlouisfed.org/series/CPIAUCSL
+L'Indice des prix à la consommation pour l'ensemble des consommateurs urbains est un indice des prix d'un panier de biens et de services payés par les consommateurs urbains. Les variations en pourcentage de l'indice des prix mesurent le taux d'inflation entre deux périodes de temps quelconques.
+
+
+Variable "SaleTrade"  : Advance Retail Sales: Retail Trade 
+Source : https://fred.stlouisfed.org/series/RSXFS
+Il mesure les ventes totales de biens et services au détail pendant une période donnée. Il indique combien les consommateurs dépensent dans une variété de catégories de produits. Alors que le SaleTrade se concentre sur la consommation, le CPI est un indicateur clé de l'inflation et a un impact direct sur les politiques monétaires.
+
+
+Variable "Cons_Sentiment" : University of Michigan: Consumer Sentiment
+Source : https://fred.stlouisfed.org/series/UMCSENT
+L'Indice de Confiance des Consommateursest un indicateur économique qui mesure le niveau de confiance et de sentiment des consommateurs à l'égard de l'économie. Cette confiance a un impact direct sur les comportements de dépenses des consommateurs, ce qui, à son tour, peut influencer l'activité économique globale et les taux d'intérêt, jouant ainsi un rôle dans la prédiction de la courbe des taux.
+
+
+Variable "Unempl_Rate" :Unemployment Rate
+Source : #https://fred.stlouisfed.org/series/UNRATE 
+C'est un indicateur qui donne des indications cruciales sur la santé économique et les attentes futures de l'économie
+
+
+Variables "SP500" et "Volume_SP500" 
+Source : Bloomberg -> Se connecter -> Ticker : SPX:IND 
+                  # -> Fonction : Historical Prices
+                  # -> Select monthly data
+Le S&P 500 est un indice boursier américain qui mesure la performance des 500 plus grandes entreprises cotées en bourse aux États-Unis. Il est un indicateur majeur du marché boursier américain, fournissant des indications cruciales sur la performance des grandes entreprises et l'appétit des investisseurs pour le risque. Ses mouvements sont surveillés attentivement dans le cadre de l'analyse des marchés et de la prédiction des tendances économiques.
+
+Document : PPIACO.csv
+Variable "PPIACO"  : Producer Price Index by Commodity: All Commodities
+Source : https://fred.stlouisfed.org/series/PPIACO
+PPIACO est un indicateur qui mesure les variations de prix des biens et services au stade de la production et il est utilisé pour évaluer les tendances inflationnistes dans l'économie.
+
+Document: Rendemnts US bond.csv
+Variable "Rend_1M" à "Rend_30Y": Rendement de l'obligation - États-Unis 
+Source: https://fr.investing.com/rates-bonds/u.s.-1-month-bond-yield?fbclid=IwAR2HKjLUmx3NkF0ntFzstuFhdfNeYg77kcMuG6HKAa2OyBlSCHBmGJwbw9c
+Modification : changer la fréquence pour "monthly" dans la section "Unité de temps" avant
+de télécharger les données pour les dates voulues
+
+Document: StressIndicator.csv
+Variable "StressIndicator_SL" : St. Louis Fed Financial Stress Index
+Source : https://fred.stlouisfed.org/series/STLFSI4
+Modification : changer la fréquence pour "monthly" dans la section "Edit graph" avant
+d'importer les données
+Le StressIndicator_SL mesure le degré de stress financier sur les marchés. La valeur moyenne de l'indice, qui commence à la fin de l'année 1993, est conçue pour être zéro. Ainsi, zéro est considéré comme représentant des conditions normales sur les marchés financiers. Les valeurs en dessous de zéro suggèrent un stress financier inférieur à la moyenne, tandis que les valeurs au-dessus de zéro suggèrent un stress financier supérieur à la moyenne. Il s'agit d'un outil qui mesure la pression ou les tensions présentes dans le système financier ou économique
+
+Document: T10Y2Y.csv
+Variable "Spread_10Y2Y"  : Différence entre le taux de rendement des Bons du Trésor 
+à 10 ans et celui à 2 ans
+Source : https://fred.stlouisfed.org/series/T10Y2Y     
+Modification : changer la fréquence pour "monthly" dans la section "Edit graph" avant
+d'importer les données
+Ce spread de taux permet de fournir des indications sur la santé économique à venir. Lorsque le spread est positif, les économistes anticipent une croissance économique et, au contraire, lorsqu'il est négatif, il s'agit d'un indicateur de récession potentielle à cause d'une inversion de la courbe de taux.
+
+Document: VIXCLS.csv
+Variable "VIX": CBOE Volatility Index: VIX 
+Source :https://fred.stlouisfed.org/series/VIXCLS
+Modification : changer la fréquence pour "monthly" dans la section "Edit graph" avant
+d'importer les données
+Le VIX mesure les attentes du marché en ce qui concerne la volatilité à court terme telle qu'exprimée par les prix des options sur les indices boursiers. Le VIX peut offrir des informations utiles pour estimer la forme de la courbe des taux. Par exemple, une période de volatilité élevée pourrait indiquer une préférence pour les obligations à court terme, ce qui pourrait aplatir la courbe des taux.
+
+Document: yield_curve_M.csv
+Variable "X3M" à "X30Y" : Taux de la courbe de taux américaine
+Source : Bloomberg Application 
+Fonction : USGG3M à USGG30YR
+Modification : changer la fréquence pour "monthly" avant l'import des données 
