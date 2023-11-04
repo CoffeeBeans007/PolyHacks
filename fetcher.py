@@ -38,8 +38,5 @@ if __name__ == "__main__":
         # Append 'US Equity' to each ticker
     formatted_tickers = [ticker + " US Equity" for ticker in a]
 
-    # Join the list back into a string with spaces
-    formatted_string = ' '.join(formatted_tickers)
-
-    # Printing the formatted string
-    print(formatted_string)
+    dataf = pd.DataFrame(columns=formatted_tickers)
+    dataf.to_csv('Data/love.csv')
