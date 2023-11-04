@@ -7,5 +7,5 @@ class RiskMetrics:
         self.returns = pd.read_csv(returns_directory)
         
 if __name__ == "__main__":
-    test = RiskMetrics("Data/benchmark/SPY_returns.csv")
+    test = RiskMetrics("Data/merged/merged_SPY_returns_new.csv")
     print(test.benchmark)
