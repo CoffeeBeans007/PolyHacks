@@ -30,6 +30,16 @@ class merged_data():
             self.data = pd.concat([self.data, data], axis=1)
             
 if __name__ == "__main__":
-    data = merged_data()
-    data.fetch_and_merge()
-    data.data.to_csv('Data/merged_data.csv')
+    data = data_input('Data/adjusted_close.csv')
+    a= data.get_all_tickers()
+    # Original list of tickers as a single string
+
+    # Remove the unwanted characters (quotes and commas)
+        # Append 'US Equity' to each ticker
+    formatted_tickers = [ticker + " US Equity" for ticker in a]
+
+    # Join the list back into a string with spaces
+    formatted_string = ' '.join(formatted_tickers)
+
+    # Printing the formatted string
+    print(formatted_string)
