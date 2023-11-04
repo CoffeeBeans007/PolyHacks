@@ -39,12 +39,8 @@ class DataDelivery:
         new_folder['date'] = submission_mock['date']
         new_folder['id'] = submission_mock['id']
 
-        new_folder.to_csv('Delivery/submissionss.csv', index=False)
+        new_folder.to_csv('Delivery/submission.csv', index=False)
 
-if __name__ == '__main__':
-    Create = DataDelivery('Data','sample_submission.csv')
-    data = Create.create_delivery()
-    
 
 
 

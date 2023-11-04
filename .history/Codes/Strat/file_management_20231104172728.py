@@ -6,7 +6,7 @@ import importlib.util
 
 
 class FileManagement(object):
-    def __init__(self, ceiling_directory: str = "DATAAAASSS"):
+    def __init__(self, ceiling_directory: str = "PolyFinance"):
         self.ceiling_directory = ceiling_directory
 
     def search(self, target_name: str, start_path: str, search_type: str = 'both') -> Union[str, None]:

@@ -42,7 +42,7 @@ class DataDelivery:
         new_folder.to_csv('Delivery/submissionss.csv', index=False)
 
 if __name__ == '__main__':
-    Create = DataDelivery('Data','sample_submission.csv')
+    Create = DataDelivery()
     data = Create.create_delivery()
     
 
