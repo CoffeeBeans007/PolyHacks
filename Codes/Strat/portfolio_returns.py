@@ -87,8 +87,8 @@ if __name__ == "__main__":
     portfolio_returns = pf_returns.portfolio_returns
     print(portfolio_returns.head())
 
-    os_helper.write_data(directory_name="transform data", file_name="portfolio_returns.csv", data_frame=portfolio_returns)
-    os_helper.write_data(directory_name="transform data", file_name="drifted_weights.csv", data_frame=drifted_weights)
+    os_helper.write_data(directory_name="final data", file_name="portfolio_returns.csv", data_frame=portfolio_returns)
+    os_helper.write_data(directory_name="final data", file_name="drifted_weights.csv", data_frame=drifted_weights)
 
 
 
