@@ -21,18 +21,10 @@ import sys
 import time
 # Path: Delivery/delivery_create.py
 
-import delivery_format
-sys.path.append('Codes/Strat/')
+sys.path.append('Codes/alphavantage/')
 
-import file_management 
+import alphavant
 
-file_management_instance = file_management.FileManagement()
+#Find uncompleted columns in dataframe and fix them
 
-
-# Create a delivery format csv then load it
-format=delivery_format.DataDelivery('Data','sample_submission.csv')
-create=format.create_delivery
-
-submission_df = file_management_instance.load_data(folder_name='Delivery', file_name='submission.csv')
-
-
+file_management_instance = alphavant.StocksData

@@ -19,20 +19,18 @@ import numba
 import math
 import sys
 import time
+import vectorbtpro
 # Path: Delivery/delivery_create.py
 
-import delivery_format
-sys.path.append('Codes/Strat/')
+sys.path.append('Data/alphavantage/')
 
-import file_management 
+import alphavant
 
-file_management_instance = file_management.FileManagement()
+#Find uncompleted columns in dataframe and fix them
 
+fold = alphavant.StocksData(api_key='1INOZ30DO4QWK4KV')
 
-# Create a delivery format csv then load it
-format=delivery_format.DataDelivery('Data','sample_submission.csv')
-create=format.create_delivery
+def get_data(ticker):
+    return fold.get_daily_adjusted_data(symbol=ticker)
 
-submission_df = file_management_instance.load_data(folder_name='Delivery', file_name='submission.csv')
-
-
+print(get_data('TRP'))
