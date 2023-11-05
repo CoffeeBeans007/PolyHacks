@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
+import datetime
 from os_helper import OsHelper
 
 pd.set_option('display.max_columns', 40)
 pd.set_option('display.max_rows', 10)
 pd.set_option('display.width', 1000)
+
 
 class ComputeMetrics(object):
     def __init__(self, price_data: pd.DataFrame, trade_volume: pd.DataFrame, reference_index: str, rolling_window_years: list = None):
@@ -13,6 +15,7 @@ class ComputeMetrics(object):
         self.reference_index = self._verify_index(reference_index)
         self.rolling_window_years = rolling_window_years
         self.turnover = self._compute_turnover()
+        self.index_returns = self._get_index_returns()
         self.returns = self._compute_returns()
 
     @staticmethod
@@ -69,11 +72,13 @@ class ComputeMetrics(object):
         return self.trade_volume * self.price_data
 
     def _compute_returns(self) -> pd.DataFrame:
-        return self.price_data.pct_change(fill_method=None).iloc[1:, :]
+        returns = self.price_data.pct_change(fill_method=None).iloc[1:, :]
+        returns.drop(labels=[self.reference_index], axis=1, inplace=True)
+        return returns
 
     def _get_index_returns(self) -> pd.Series:
-        index_returns = self.returns[self.reference_index].copy()
-        self.returns = self.returns.drop(labels=[self.reference_index], axis=1)
+        index_series = self.price_data[self.reference_index].copy()
+        index_returns = index_series.pct_change(fill_method=None).iloc[1:]
         return index_returns
 
     def compute_average_rolling_turnover(self, rolling_window_year: int) -> pd.DataFrame:
@@ -86,33 +91,67 @@ class ComputeMetrics(object):
 
     def compute_rolling_beta(self, rolling_window_year: int) -> pd.DataFrame:
         rolling_window = int(rolling_window_year * 252)
-        index_returns = self._get_index_returns()
-
         # Compute the rolling covariance and variance
-        covariance_with_index = self.returns.rolling(window=rolling_window).cov(index_returns, pairwise=True)
-        variance_of_index = index_returns.rolling(window=rolling_window).var()
+        covariance_with_index = self.returns.rolling(window=rolling_window).cov(self.index_returns, pairwise=True)
+        variance_of_index = self.index_returns.rolling(window=rolling_window).var()
 
         # Calculate rolling betas
         rolling_betas = covariance_with_index.div(variance_of_index.values, axis=0)
 
         return rolling_betas
 
+    def compile_all_metrics(self) -> pd.DataFrame:
 
+        all_risk_metrics_dict = {ticker: {} for ticker in self.returns.columns}
+
+        start = datetime.datetime.now()
+        print(f'all metrics calculation started {start.strftime("%Y-%m-%d %H:%M:%S")}')
+
+        for year in self.rolling_window_years:
+            for ticker in self.returns.columns:
+                # Average rolling turnover
+                average_rolling_turnover = self.compute_average_rolling_turnover(year)
+                all_risk_metrics_dict[ticker][f"average_turnover_{year}Y"] = average_rolling_turnover[ticker]
+                # Volatility
+                volatility = self.compute_rolling_volatility(year)
+                all_risk_metrics_dict[ticker][f"volatility_{year}Y"] = volatility[ticker]
+
+                # Beta
+                beta = self.compute_rolling_beta(year)
+                all_risk_metrics_dict[ticker][f"beta_{year}Y"] = beta[ticker]
+
+            print(f"Metrics for {year} year(s) window calculated")
+
+        all_risk_metrics_df = pd.concat(
+            {k: pd.DataFrame(v) for k, v in all_risk_metrics_dict.items()}, axis=1
+        )
+        all_risk_metrics_df = all_risk_metrics_df.sort_index(axis=1, level=[0, 1])
+
+        end = datetime.datetime.now()
+        print(f'all metrics calculation ended {end.strftime("%Y-%m-%d %H:%M:%S")}')
+        duration = end - start
+        duration_in_minutes = duration.total_seconds() / 60
+        print(f"duration for all metrics calculation {duration_in_minutes:.4f} minutes")
+
+        return all_risk_metrics_df
 
 
 
 if __name__ == '__main__':
-    file_manager = OsHelper()
+    os_helper = OsHelper()
 
-    price_data = file_manager.read_data(directory_name="Data", file_name="previous_close.csv", index_col=0, low_memory=False)
-    trade_volume = file_manager.read_data(directory_name="Data", file_name="previous_volume.csv", index_col=0, low_memory=False)
+    price_data = os_helper.read_data(directory_name="base data", file_name="previous_close.csv", index_col=0, low_memory=False)
+    trade_volume = os_helper.read_data(directory_name="base data", file_name="previous_volume.csv", index_col=0, low_memory=False)
 
-    metrics_calculator = ComputeMetrics(price_data=price_data, trade_volume=trade_volume,
+    rolling_window_years = [1, 3]
+
+    metrics_calculator = ComputeMetrics(price_data=price_data, trade_volume=trade_volume, rolling_window_years=rolling_window_years,
                                         reference_index="AAPL US Equity")
 
-    print(metrics_calculator.compute_average_rolling_turnover(rolling_window_year=1))
-    print(metrics_calculator.compute_rolling_volatility(rolling_window_year=1))
-    print(metrics_calculator.compute_rolling_beta(rolling_window_year=1))
+    final_df = metrics_calculator.compile_all_metrics()
+
+    os_helper.write_data(directory_name="transform data", file_name="all_metrics.csv", data_frame=final_df)
+
 
 
 
