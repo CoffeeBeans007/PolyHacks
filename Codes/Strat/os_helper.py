@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import shutil
 
 
 class OsHelper(object):
@@ -72,6 +73,18 @@ class OsHelper(object):
         else:
             raise ValueError(f"File extension {file_extension} not supported.")
         print(f"Saved file {os.path.basename(file_path)} to folder {os.path.dirname(file_path)}.")
+
+    def move_file(self, src_file_name: str, dest_directory_name: str) -> None:
+        starting_path = os.getcwd()
+        dest_directory_path = self.find_folder_path(target_name=dest_directory_name, search_path=starting_path)
+        if dest_directory_path is None:
+            raise FileNotFoundError(f"Folder {dest_directory_name} not found.")
+
+        src_file_path = os.path.join(starting_path, src_file_name)
+        dest_file_path = os.path.join(dest_directory_path, src_file_name)
+
+        shutil.move(src_file_path, dest_file_path)
+        print(f"Moved file {src_file_name} to folder {dest_directory_path}.")
 
 
 if __name__ == '__main__':

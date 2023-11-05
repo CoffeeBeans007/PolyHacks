@@ -21,7 +21,7 @@ merged_data.dropna(inplace=True)
 # Define the feature columns (assuming the first column after 'Date' in macro_data is a feature)
 feature_columns = macro_data.columns.difference(['Date']).tolist()
 
-# Define performance classification based on median returns
+# Define performance classification based on median daily_returns
 def classify_performance(return_value, median_value):
     return 'High Performance' if return_value > median_value else 'Low Performance'
 
