@@ -72,7 +72,7 @@ class Rolling_Rebalance:
             beta.columns = [i for i in range(windows)]
             return beta
             
-    def slow_rebalance(self,speed=0.5):
+    def slow_rebalance(self,data,speed=0.5) -> pd.DataFrame:
         """
         Rebalance the portfolio slowly
         Inputs:
