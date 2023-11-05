@@ -39,7 +39,7 @@ class Rolling_Rebalance:
         Cut datasets into windows and calculate beta for each window
         Inputs:
         - windows: int, number of windows
-        - filtered_data: dataframe, dataframe of returns
+        - filtered_data: dataframe, dataframe of daily_returns
 
         Outputs:
         - beta: dataframe, dataframe of betas
@@ -76,7 +76,7 @@ class Rolling_Rebalance:
         """
         Rebalance the portfolio slowly
         Inputs:
-        - filtered_data: dataframe, dataframe of returns
+        - filtered_data: dataframe, dataframe of daily_returns
         - speed: float, speed of rebalancing
 
         Outputs:
