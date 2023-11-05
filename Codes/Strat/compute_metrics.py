@@ -72,7 +72,7 @@ class ComputeMetrics(object):
         return self.price_data.pct_change(fill_method=None).iloc[1:, :]
 
     def _get_index_returns(self) -> pd.Series:
-        index_returns = self.returns[[self.reference_index]].copy()
+        index_returns = self.returns[self.reference_index].copy()
         self.returns = self.returns.drop(labels=[self.reference_index], axis=1)
         return index_returns
 
