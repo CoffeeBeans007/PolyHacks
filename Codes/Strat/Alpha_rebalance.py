@@ -17,15 +17,18 @@ import requests
 import tensorflow
 import numba
 import math
+import file_management 
+
 
 class Rolling_Rebalance:
+    
     def __init__(self,windows,data) -> None:
+        findfunction= file_management.FileManagement()
         self.windows = windows
-        self.data = data
+        self.data = findfunction.load_data(data)
         pass
     
-    def func(self):
-        pass
+    
     def exponential_function(x, a):
         return 1 - math.exp(-a * x)
 
@@ -69,6 +72,23 @@ class Rolling_Rebalance:
             beta.columns = [i for i in range(windows)]
             return beta
             
+    def slow_rebalance(self,speed=0.5):
+        """
+        Rebalance the portfolio slowly
+        Inputs:
+        - data: dataframe, dataframe of returns
+        - speed: float, speed of rebalancing
+
+        Outputs:
+        - weightings: dataframe, dataframe of weightings
+        """
+        weightings = pd.DataFrame()
+        for i in range(len(data)):
+            if i==0:
+                weightings = pd.concat([weightings,pd.DataFrame([1])],axis=1)
+            else:
+                weightings = pd.concat([weightings,pd.DataFrame([weightings.iloc[i-1][0]*(1+data.iloc[i][0]*speed)])],axis=1)
+        return weightings
 
         
 
