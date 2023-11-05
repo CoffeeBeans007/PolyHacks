@@ -1,5 +1,6 @@
 import pandas as pd
 from typing import List, Union
+from os_helper import OsHelper
 
 
 class GetRebalDates:
@@ -59,9 +60,33 @@ class GetRebalDates:
         return reb_dates
 
 
+def filter_by_rebalance_dates(get_reb_dates: GetRebalDates, data: pd.DataFrame) -> pd.DataFrame:
+    if not isinstance(data.columns, pd.MultiIndex):
+        raise ValueError()
+
+    if not isinstance(data.index, pd.DatetimeIndex):
+        try:
+            data.index = pd.to_datetime(data.index)
+            data.index.name = None
+        except ValueError:
+            raise ValueError()
+
+    data_transformed = data.stack(level=0).reset_index()
+    data_transformed.columns = ['Date', 'Ticker'] + list(data_transformed.columns[2:])
+
+    filtered_data = data_transformed[data_transformed['Date'].isin(get_reb_dates.reb_dates)]
+    # reset index to 0, 1, 2, ...
+    filtered_data.reset_index(drop=True, inplace=True)
+
+    return filtered_data
+
+
 if __name__ == "__main__":
-    # Création d'une instance de GetRebalDates
-    scheduler = GetRebalDates(
+    os_helper = OsHelper()
+    all_metrics = os_helper.read_data(directory_name="transform data", file_name="all_metrics.csv", index_col=0, header=[0, 1])
+    print(all_metrics.head())
+
+    get_reb_dates = GetRebalDates(
         termination_date='2021-12-31',
         initial_year=2010,
         reb_month=3,
@@ -70,9 +95,14 @@ if __name__ == "__main__":
         reb_frequency='Q'
     )
     # Récupération et affichage des dates de rebalancement
-    rebalance_dates = scheduler.reb_dates
+    rebalance_dates = get_reb_dates.reb_dates
 
     print("Dates de rebalancement :")
     for date in rebalance_dates:
         print(date)
+
+    reb_metrics = filter_by_rebalance_dates(get_reb_dates=get_reb_dates, data=all_metrics)
+    print(reb_metrics.head())
+
+    os_helper.write_data(directory_name="transform data", file_name="rebalance_metrics.csv", data_frame=reb_metrics)
 
