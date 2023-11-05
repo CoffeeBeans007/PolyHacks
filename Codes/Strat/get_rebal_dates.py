@@ -1,6 +1,7 @@
 import pandas as pd
 from typing import List, Union
 from os_helper import OsHelper
+from datetime import timedelta
 
 
 class GetRebalDates:
@@ -22,12 +23,8 @@ class GetRebalDates:
 
     def _determine_start_date(self) -> pd.Timestamp:
         start_of_month = pd.Timestamp(year=self.initial_year, month=self.reb_month, day=1)
-        first_occurrence = self.reb_weekday - start_of_month.weekday() + 1 + (self.reb_week - 1) * 7
-        while True:
-            try:
-                return pd.Timestamp(year=self.initial_year, month=self.reb_month, day=first_occurrence)
-            except ValueError:
-                first_occurrence -= 1
+        first_occurrence = start_of_month + pd.Timedelta(days=(self.reb_weekday - start_of_month.weekday() + (self.reb_week - 1) * 7))
+        return first_occurrence
 
     def _generate_reb_dates(self) -> List[pd.Timestamp]:
         frequency_dict = {'M': 1, 'Q': 3, 'S': 6, 'A': 12}
@@ -37,20 +34,9 @@ class GetRebalDates:
         while True:
             months_to_add = frequency_dict[self.reb_frequency]
             subsequent_date = subsequent_date + pd.DateOffset(months=months_to_add)
-
-            # Re-align to the same week and weekday
             first_day_of_next_month = pd.Timestamp(year=subsequent_date.year, month=subsequent_date.month, day=1)
-            first_occurrence = self.reb_weekday - first_day_of_next_month.weekday()
-            first_occurrence = first_occurrence + 7 if first_occurrence < 0 else first_occurrence
-            day_of_month = first_occurrence + 1 + (self.reb_week - 1) * 7
-
-            while True:
-                try:
-                    subsequent_date = pd.Timestamp(year=subsequent_date.year, month=subsequent_date.month,
-                                                   day=day_of_month)
-                    break
-                except ValueError:
-                    day_of_month -= 1
+            delta_days = (self.reb_weekday - first_day_of_next_month.weekday() + (self.reb_week - 1) * 7)
+            subsequent_date = first_day_of_next_month + pd.Timedelta(days=delta_days)
 
             if subsequent_date > self.termination_date:
                 break
@@ -87,12 +73,12 @@ if __name__ == "__main__":
     print(all_metrics.head())
 
     get_reb_dates = GetRebalDates(
-        termination_date='2021-12-31',
-        initial_year=2010,
-        reb_month=3,
+        termination_date='2015-12-31',
+        initial_year=2000,
+        reb_month=1,
         reb_week=1,
-        reb_weekday='MON',
-        reb_frequency='Q'
+        reb_weekday='FRI',
+        reb_frequency='A'
     )
     # Récupération et affichage des dates de rebalancement
     rebalance_dates = get_reb_dates.reb_dates
