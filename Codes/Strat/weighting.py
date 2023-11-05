@@ -115,7 +115,16 @@ class InverseMetricsWeighting(object):
             metrics_df.loc[metrics_df["Date"] == date, "Weight"] = final_weights.value
 
         weighting_df = metrics_df[["Date", "Ticker", "Weight"]]
+        self._verify_weights_sum(weighting_df)
         return weighting_df
+
+    def _verify_weights_sum(self, weighting_df: pd.DataFrame):
+        weight_sums = weighting_df.groupby("Date")["Weight"].sum().reset_index()
+        for _, row in weight_sums.iterrows():
+            date, weight_sum = row["Date"], row["Weight"]
+            if not np.isclose(weight_sum, 1.0):
+                raise ValueError(f"The sum of weights on date {date} is not equal to 1. Sum is {weight_sum}.")
+        print("All weights sum to 1 for each date.")
 
 
 
@@ -136,5 +145,4 @@ if __name__ == "__main__":
     inverse_metrics_weighting_df = inverse_metrics_weighting.compute_inverse_weighted_metrics()
     print(inverse_metrics_weighting_df)
 
-
-    # os_helper.write_data(directory_name="transform filtered_data", file_name="inverse_metrics_weighting.csv", data_frame=inverse_metrics_weighting)
+    os_helper.write_data(directory_name="transform data", file_name="inverse_metrics_weighting.csv", data_frame=inverse_metrics_weighting_df)
