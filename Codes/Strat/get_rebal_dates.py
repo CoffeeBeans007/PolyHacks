@@ -69,7 +69,7 @@ def filter_by_rebalance_dates(get_reb_dates: GetRebalDates, data: pd.DataFrame) 
 
 if __name__ == "__main__":
     os_helper = OsHelper()
-    all_metrics = os_helper.read_data(directory_name="transform data", file_name="all_metrics.csv", index_col=0, header=[0, 1])
+    all_metrics = os_helper.read_data(directory_name="transform filtered_data", file_name="all_metrics.csv", index_col=0, header=[0, 1])
     print(all_metrics.head())
 
     get_reb_dates = GetRebalDates(
@@ -90,5 +90,5 @@ if __name__ == "__main__":
     reb_metrics = filter_by_rebalance_dates(get_reb_dates=get_reb_dates, data=all_metrics)
     print(reb_metrics.head())
 
-    os_helper.write_data(directory_name="transform data", file_name="rebalance_metrics.csv", data_frame=reb_metrics)
+    os_helper.write_data(directory_name="transform filtered_data", file_name="rebalance_metrics.csv", data_frame=reb_metrics)
 

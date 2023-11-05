@@ -21,7 +21,7 @@ class ComputeMetrics(object):
     @staticmethod
     def _verify_index(reference_index: str) -> str:
         if reference_index not in price_data.columns:
-            raise ValueError(f"Reference index {reference_index} not found in price data.")
+            raise ValueError(f"Reference index {reference_index} not found in price filtered_data.")
         return reference_index
 
     @staticmethod
@@ -140,8 +140,8 @@ class ComputeMetrics(object):
 if __name__ == '__main__':
     os_helper = OsHelper()
 
-    price_data = os_helper.read_data(directory_name="base data", file_name="previous_close.csv", index_col=0, low_memory=False)
-    trade_volume = os_helper.read_data(directory_name="base data", file_name="previous_volume.csv", index_col=0, low_memory=False)
+    price_data = os_helper.read_data(directory_name="base filtered_data", file_name="previous_close.csv", index_col=0, low_memory=False)
+    trade_volume = os_helper.read_data(directory_name="base filtered_data", file_name="previous_volume.csv", index_col=0, low_memory=False)
 
     rolling_window_years = [1, 3]
 
@@ -150,7 +150,7 @@ if __name__ == '__main__':
 
     final_df = metrics_calculator.compile_all_metrics()
 
-    os_helper.write_data(directory_name="transform data", file_name="all_metrics.csv", data_frame=final_df)
+    os_helper.write_data(directory_name="transform filtered_data", file_name="all_metrics.csv", data_frame=final_df)
 
 
 

@@ -41,13 +41,13 @@ class Filter:
 # Exemple d'utilisation
 if __name__ == "__main__":
     os_helper = OsHelper()
-    data = os_helper.read_data(directory_name="transform data", file_name="rebalance_metrics.csv", index_col=0)
+    data = os_helper.read_data(directory_name="transform filtered_data", file_name="rebalance_metrics.csv", index_col=0)
     print(data)
     risk_filter = Filter(data=data)
     filtered_data = risk_filter.apply_filters(liquidity_top_n=200, risk_top_n=120)
     print(filtered_data.head())
 
-    os_helper.write_data(directory_name="transform data", file_name="filtered_data.csv", data_frame=filtered_data)
+    os_helper.write_data(directory_name="transform filtered_data", file_name="filtered_data.csv", data_frame=filtered_data)
 
 
 
