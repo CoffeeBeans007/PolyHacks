@@ -93,6 +93,24 @@ class PortfolioReturns(object):
         returns.index.name = None
         return returns
 
+    def verify_and_normalize_weights(self, weights_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Verifies if the weights on each date sum to 1. If not, normalizes them.
+
+        Args:
+            weights_df (pd.DataFrame): DataFrame with weights to verify.
+
+        Returns:
+            pd.DataFrame: The DataFrame with weights normalized if necessary.
+        """
+        for date, weights in weights_df.iterrows():
+            weights_sum = weights.sum()
+            # If the sum of weights is not 1, normalize the weights
+            if not np.isclose(weights_sum, 1):
+                print(f"Sum of weights on {date} is not 1. Normalizing weights.")
+                weights_df.loc[date] = weights / weights_sum
+        return weights_df
+
     def _compute_drifted_weights(self) -> pd.DataFrame:
         """
         Computes drifted weights based on initial allocations and asset returns.
@@ -126,6 +144,9 @@ class PortfolioReturns(object):
                 current_weights = daily_change / daily_change.sum()
             adjusted_weights.iloc[i] = current_weights
 
+        # Verify and normalize drifted weights
+        adjusted_weights = self.verify_and_normalize_weights(adjusted_weights)
+
         adjusted_weights.index.name = None
         return adjusted_weights
 
@@ -155,7 +176,7 @@ class PortfolioReturns(object):
             except KeyError:
                 # If a KeyError occurs, set transaction cost to 0 for this date
                 transaction_costs.loc[date] = 0
-                print(f"Unable to calculate transaction costs for {date}.")
+                print(f"Unable to calculate transaction costs for {date} (Holiday).")
 
             # Subtract transaction costs from portfolio returns
         portfolio_returns["Portfolio_Returns"] -= transaction_costs

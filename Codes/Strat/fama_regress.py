@@ -1,5 +1,7 @@
 import statsmodels.api as sm
 import pandas as pd
+from os_helper import OsHelper
+
 
 class FamaFrenchRegression:
     """
@@ -28,20 +30,20 @@ class FamaFrenchRegression:
         Returns the summary of the regression results.
     """
     
-    def __init__(self, ff_factors_path: str, portfolio_returns_path: str):
+    def __init__(self, ff_factors: pd.DataFrame, portfolio_returns: pd.DataFrame):
         """
         Constructs all the necessary attributes for the FamaFrenchRegression object.
 
         Parameters
         ----------
-        ff_factors_path : str
-            The file path to the CSV file containing Fama-French factors data.
-        portfolio_returns_path : str
-            The file path to the CSV file containing portfolio returns data.
+        ff_factors : pd.DataFrame
+            DataFrame containing Fama-French factors data.
+        portfolio_returns : pd.DataFrame
+            DataFrame containing portfolio returns data.
         """
-        # Load data
-        self.ff_factors = pd.read_csv(ff_factors_path)
-        self.portfolio_returns = pd.read_csv(portfolio_returns_path)
+        # Assign data
+        self.ff_factors = ff_factors
+        self.portfolio_returns = portfolio_returns
         
         # Preprocess data
         self._preprocess_data()
@@ -129,11 +131,15 @@ class FamaFrenchRegression:
   
 if __name__ == "__main__":
     # Paths to the CSV files containing the Fama-French factors and portfolio returns
-    ff_factors_path = '/Users/ced/Documents/PolyHacks/Data/benchmark/F-F_Research_Data_5_Factors_2x3_daily.CSV'
-    portfolio_returns_path = '/Users/ced/Documents/PolyHacks/Data/transform data/portfolio_returns.csv'
+    os_helper = OsHelper()
+    ff_factors = os_helper.read_data(directory_name='benchmark', file_name='F-F_Research_Data_5_Factors_2x3_daily.csv')
+    portfolio_returns = os_helper.read_data(directory_name='final data', file_name='portfolio_returns.csv')
+
+    print(ff_factors.head())
+    print(portfolio_returns.head())
 
     # Instantiate the FamaFrenchRegression class
-    ff_regression = FamaFrenchRegression(ff_factors_path, portfolio_returns_path)
+    ff_regression = FamaFrenchRegression(ff_factors, portfolio_returns)
 
     # Run the regression
     ff_regression.run_regression()

@@ -253,11 +253,6 @@ class InverseMetricsWeighting(object):
             # Define constraints
             constraints = [cp.sum(final_weights) == 1, final_weights >= self.min_limit, final_weights <= self.max_limit]
 
-            # Add constraints to ensure tickers with initial weights of 0 stay at 0
-            for i, weight in enumerate(initial_weights):
-                if weight == 0:
-                    constraints.append(final_weights[i] == 0)
-
             # Solve the optimization problem
             problem = cp.Problem(objective, constraints)
             problem.solve()
@@ -319,9 +314,9 @@ if __name__ == "__main__":
     filtered_data = os_helper.read_data(directory_name="transform data", file_name="filtered_data.csv", index_col=0)
     print(filtered_data)
 
-    years_to_inverse = [1, 3]
+    years_to_inverse = [1, 2, 3]
     metric_to_inverse = "beta"
-    weighting_list = [0.5, 0.5]
+    weighting_list = []
     min_weight = 0.00001
     max_weight = 0.05
 
