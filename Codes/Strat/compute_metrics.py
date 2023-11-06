@@ -9,7 +9,7 @@ pd.set_option('display.width', 1000)
 
 
 class ComputeMetrics(object):
-    def __init__(self, price_data: pd.DataFrame, trade_volume: pd.DataFrame, reference_index: str, rolling_window_years: list = None):
+    def __init__(self, price_data: pd.DataFrame, trade_volume: pd.DataFrame, benchmark_series: pd.Series, rolling_window_years: list = None):
         """
         Initialize ComputeMetrics with price data, trade volume, reference index, and rolling window years.
 
@@ -21,29 +21,11 @@ class ComputeMetrics(object):
         """
         self.price_data = self._validate_data(price_data)
         self.trade_volume = self._validate_data(trade_volume)
-        self.reference_index = self._verify_index(reference_index)
         self.rolling_window_years = rolling_window_years
         self.turnover = self._compute_turnover()
-        self.index_returns = self._get_index_returns()
         self.returns = self._compute_returns()
+        self.benchmark_returns = self._prepare_benchmark_returns(benchmark_series)
 
-    @staticmethod
-    def _verify_index(reference_index: str) -> str:
-        """
-        Validate if the reference index exists in the price data.
-
-        Args:
-            reference_index (str): The reference index to validate.
-
-        Returns:
-            str: Validated reference index.
-
-        Raises:
-            ValueError: If the reference index is not found in the price data.
-        """
-        if reference_index not in price_data.columns:
-            raise ValueError(f"Reference index {reference_index} not found in price filtered_data.")
-        return reference_index
 
     @staticmethod
     def _validate_datetime_format(dataset: pd.DataFrame) -> pd.DataFrame:
@@ -120,6 +102,23 @@ class ComputeMetrics(object):
         dataset = dataset.sort_index()
         return dataset
 
+    def _prepare_benchmark_returns(self, benchmark_series: pd.Series) -> pd.Series:
+        """
+        Prepare benchmark returns by calculating daily returns and removing the first row.
+
+        Args:
+            benchmark_series (pd.Series): Series containing benchmark data.
+
+        Returns:
+            pd.Series: Series containing benchmark returns.
+        """
+        if benchmark_series.index.dtype == "O":
+            benchmark_series.index = pd.to_datetime(benchmark_series.index)
+        benchmark_returns = benchmark_series.pct_change(fill_method=None).iloc[1:]
+        # keep same index as price data
+        benchmark_returns = benchmark_returns.reindex(self.returns.index)
+        return benchmark_returns
+
     def _compute_turnover(self) -> pd.DataFrame:
         """
         Compute turnover as product of trade volume and price data.
@@ -131,19 +130,7 @@ class ComputeMetrics(object):
 
     def _compute_returns(self) -> pd.DataFrame:
         returns = self.price_data.pct_change(fill_method=None).iloc[1:, :]
-        returns.drop(labels=[self.reference_index], axis=1, inplace=True)
         return returns
-
-    def _get_index_returns(self) -> pd.Series:
-        """
-        Get returns of the reference index.
-
-        Returns:
-            pd.Series: Series of reference index returns.
-        """
-        index_series = self.price_data[self.reference_index].copy()
-        index_returns = index_series.pct_change(fill_method=None).iloc[1:]
-        return index_returns
 
     def compute_average_rolling_turnover(self, rolling_window_year: int) -> pd.DataFrame:
         """
@@ -183,8 +170,8 @@ class ComputeMetrics(object):
         """
         rolling_window = int(rolling_window_year * 252)
         # Compute the rolling covariance and variance
-        covariance_with_index = self.returns.rolling(window=rolling_window).cov(self.index_returns, pairwise=True)
-        variance_of_index = self.index_returns.rolling(window=rolling_window).var()
+        covariance_with_index = self.returns.rolling(window=rolling_window).cov(self.benchmark_returns, pairwise=True)
+        variance_of_index = self.benchmark_returns.rolling(window=rolling_window).var()
 
         # Calculate rolling betas
         rolling_betas = covariance_with_index.div(variance_of_index.values, axis=0)
@@ -239,21 +226,23 @@ class ComputeMetrics(object):
         return all_metrics_df
 
 
-
 if __name__ == '__main__':
     os_helper = OsHelper()
 
-    price_data = os_helper.read_data(directory_name="base filtered_data", file_name="previous_close.csv", index_col=0, low_memory=False)
-    trade_volume = os_helper.read_data(directory_name="base filtered_data", file_name="previous_volume.csv", index_col=0, low_memory=False)
+    price_data = os_helper.read_data(directory_name="base data", file_name="close_fixed.csv", index_col=0, low_memory=False)
+    trade_volume = os_helper.read_data(directory_name="base data", file_name="volume_fixed.csv", index_col=0, low_memory=False)
+    spy = os_helper.read_data(directory_name="benchmark", file_name="SPY (1).csv", index_col=0, low_memory=False)
+
+    print(spy)
 
     rolling_window_years = [1, 3]
 
     metrics_calculator = ComputeMetrics(price_data=price_data, trade_volume=trade_volume, rolling_window_years=rolling_window_years,
-                                        reference_index="AAPL US Equity")
+                                        benchmark_series=spy['Adj Close'])
 
     final_df = metrics_calculator.compile_all_metrics()
 
-    os_helper.write_data(directory_name="transform filtered_data", file_name="all_metrics.csv", data_frame=final_df)
+    os_helper.write_data(directory_name="transform data", file_name="all_metrics.csv", data_frame=final_df)
 
 
 

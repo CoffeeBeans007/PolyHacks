@@ -130,7 +130,7 @@ if __name__ == "__main__":
         reb_month=1,
         reb_week=2,
         reb_weekday='FRI',
-        reb_frequency='Q'
+        reb_frequency='M'
     )
     # Récupération et affichage des dates de rebalancement
     rebalance_dates = get_reb_dates.reb_dates
@@ -141,7 +141,6 @@ if __name__ == "__main__":
 
     reb_metrics = filter_by_rebalance_dates(get_reb_dates=get_reb_dates, data=all_metrics)
     print(reb_metrics.head())
-    print(reb_metrics.index.unique())
 
     # os_helper.write_data(directory_name="transform filtered_data", file_name="rebalance_metrics.csv", data_frame=reb_metrics)
 
