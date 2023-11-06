@@ -2,12 +2,9 @@ import pandas as pd
 import numpy as np
 from os_helper import OsHelper
 
-import pandas as pd
-import numpy as np
-
 
 class PortfolioReturns(object):
-    def __init__(self, prices: pd.DataFrame, weighting_data: pd.DataFrame, rebalance_lag: int = 7):
+    def __init__(self, prices: pd.DataFrame, weighting_data: pd.DataFrame, rebalance_lag: int = 7, transaction_fee: float = 0.001):
         """
         Initializes the PortfolioReturns class.
 
@@ -18,6 +15,7 @@ class PortfolioReturns(object):
         """
         # Validate and prepare data for computations
         self.prices = self._validate_price_data(prices)
+        self.transaction_fee = transaction_fee
         self.rebalance_lag = rebalance_lag
         self.asset_returns = self._compute_returns()
         self.weighting_data = self._transform_allocation_data(weighting_data)
@@ -138,6 +136,14 @@ class PortfolioReturns(object):
         returns = self.asset_returns.loc[self.drifted_weights.index[0]:]
         portfolio_returns = pd.DataFrame(index=returns.index, columns=["Portfolio_Returns"])
         portfolio_returns["Portfolio_Returns"] = (self.drifted_weights.shift(periods=1) * returns).sum(axis=1)
+
+        # Adjust for transaction costs on rebalance days
+        rebalance_dates = self.weighting_data.index.shift(self.rebalance_lag, freq='D')
+        transaction_costs = self.transaction_fee * np.abs(
+            self.drifted_weights.loc[rebalance_dates] - self.drifted_weights.shift(periods=1).loc[rebalance_dates]).sum(
+            axis=1)
+        portfolio_returns.loc[rebalance_dates, "Portfolio_Returns"] -= transaction_costs
+
         portfolio_returns.index.name = None
         return portfolio_returns
 
@@ -150,8 +156,9 @@ if __name__ == "__main__":
     print(weighting_df.head())
 
     rebalance_lag = 7
+    transaction_fee = 0.001
 
-    pf_returns = PortfolioReturns(prices=prices, weighting_data=weighting_df, rebalance_lag=rebalance_lag)
+    pf_returns = PortfolioReturns(prices=prices, weighting_data=weighting_df, rebalance_lag=rebalance_lag, transaction_fee=transaction_fee)
     drifted_weights = pf_returns.drifted_weights
     print(drifted_weights.head())
     portfolio_returns = pf_returns.portfolio_returns
