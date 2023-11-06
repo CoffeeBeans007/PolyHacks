@@ -86,6 +86,46 @@ class FamaFrenchRegression:
             The summary of the regression results as a string.
         """
         return self.model.summary()
+    def run_rolling_regression(self, window_size: int = 252) -> pd.DataFrame:
+        """
+        Runs rolling window regressions of the portfolio returns against the Fama-French factors.
+
+        Parameters
+        ----------
+        window_size : int
+            The number of trading days to include in each rolling window (default is 252, approximately one trading year).
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with dates as the index and the regression coefficients for each factor as the columns.
+        """
+        # Define the independent variables (Fama-French factors)
+        independent_vars = ['Mkt-RF', 'SMB', 'HML', 'RMW', 'CMA']
+
+        # Create an empty DataFrame to store the regression coefficients, with columns for each factor
+        rolling_coeffs = pd.DataFrame(index=self.merged_data['Date'], columns=independent_vars)
+
+        # Iterate over the merged data, shifting the window by one day each time
+        for end_index in range(window_size, len(self.merged_data) + 1):
+            # Define the start index for the rolling window
+            start_index = end_index - window_size
+
+            # Subset the data for the current window
+            window_data = self.merged_data.iloc[start_index:end_index]
+            X = window_data[independent_vars]
+            y = window_data['Excess_Return']
+
+            # Run the regression for the current window
+            model = sm.OLS(y,X).fit()
+
+            coeffs = model.params
+            rolling_coeffs.loc[window_data.iloc[-1]['Date'], coeffs.index] = coeffs.values
+
+        # Drop rows that have not been filled with coefficients due to the rolling window
+        rolling_coeffs = rolling_coeffs.dropna()
+
+        return rolling_coeffs
   
 if __name__ == "__main__":
     # Paths to the CSV files containing the Fama-French factors and portfolio returns
@@ -101,3 +141,10 @@ if __name__ == "__main__":
     # Retrieve and display the regression results
     regression_results = ff_regression.get_regression_results()
     print(regression_results)
+    
+     # Run the rolling regression
+    rolling_results = ff_regression.run_rolling_regression(window_size=252)
+
+    # Print or use the rolling regression results
+    print(rolling_results)
+
