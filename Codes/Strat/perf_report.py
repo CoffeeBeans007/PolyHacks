@@ -160,11 +160,10 @@ class PerfReport(object):
 
 if __name__ == "__main__":
     os_helper = OsHelper()
-    benchmark_prices = os_helper.read_data(directory_name="benchmark", file_name="SPY.csv", index_col=0)
-    benchmark_prices.set_index(benchmark_prices.columns[0], inplace=True)
+    benchmark_prices = os_helper.read_data(directory_name="benchmark", file_name="SPY (1).csv", index_col=0)
     benchmark_prices.sort_index(inplace=True)
     benchmark_prices.index.name = None
-    benchmark_prices = benchmark_prices[["adjusted_close"]]
+    benchmark_prices = benchmark_prices[["Adj Close"]]
     benchmark_prices.columns = ["SPY"]
 
     print(benchmark_prices.head())

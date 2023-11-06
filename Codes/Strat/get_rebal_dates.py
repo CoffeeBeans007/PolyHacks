@@ -124,15 +124,15 @@ if __name__ == "__main__":
     all_metrics = os_helper.read_data(directory_name="transform data", file_name="all_metrics.csv", index_col=0, header=[0, 1])
     print(all_metrics.head())
 
-    get_reb_dates = GetRebalDates(
-        termination_date='2015-12-31',
-        initial_year=2000,
-        reb_month=1,
-        reb_week=2,
-        reb_weekday='FRI',
-        reb_frequency='M'
-    )
-    # Récupération et affichage des dates de rebalancement
+    termination_date = '2015-12-31'
+    initial_year = 2000
+    reb_month = 1
+    reb_week = 2
+    reb_weekday = 'FRI'
+    reb_frequency = 'Q'
+
+    get_reb_dates = GetRebalDates(termination_date=termination_date, initial_year=initial_year, reb_month=reb_month,
+                                  reb_week=reb_week, reb_weekday=reb_weekday, reb_frequency=reb_frequency)
     rebalance_dates = get_reb_dates.reb_dates
 
     print("Dates de rebalancement :")
@@ -142,5 +142,5 @@ if __name__ == "__main__":
     reb_metrics = filter_by_rebalance_dates(get_reb_dates=get_reb_dates, data=all_metrics)
     print(reb_metrics.head())
 
-    # os_helper.write_data(directory_name="transform filtered_data", file_name="rebalance_metrics.csv", data_frame=reb_metrics)
+    os_helper.write_data(directory_name="transform data", file_name=f"rebalance_metrics.csv", data_frame=reb_metrics)
 

@@ -3,6 +3,10 @@ import numpy as np
 from os_helper import OsHelper
 
 
+pd.set_option('display.max_columns', 40)
+pd.set_option('display.max_rows', 10)
+pd.set_option('display.width', 1000)
+
 class PortfolioReturns(object):
     def __init__(self, prices: pd.DataFrame, weighting_data: pd.DataFrame, rebalance_lag: int = 7, transaction_fee: float = 0.001):
         """
@@ -137,12 +141,24 @@ class PortfolioReturns(object):
         portfolio_returns = pd.DataFrame(index=returns.index, columns=["Portfolio_Returns"])
         portfolio_returns["Portfolio_Returns"] = (self.drifted_weights.shift(periods=1) * returns).sum(axis=1)
 
+        # Initialize a series to store transaction costs, defaulting to 0
+        transaction_costs = pd.Series(0, index=portfolio_returns.index)
+
         # Adjust for transaction costs on rebalance days
         rebalance_dates = self.weighting_data.index.shift(self.rebalance_lag, freq='D')
-        transaction_costs = self.transaction_fee * np.abs(
-            self.drifted_weights.loc[rebalance_dates] - self.drifted_weights.shift(periods=1).loc[rebalance_dates]).sum(
-            axis=1)
-        portfolio_returns.loc[rebalance_dates, "Portfolio_Returns"] -= transaction_costs
+
+        for date in rebalance_dates:
+            try:
+                # Attempt to calculate transaction costs
+                transaction_cost = self.transaction_fee * np.abs(self.drifted_weights.loc[date] - self.drifted_weights.shift(periods=1).loc[date]).sum()
+                transaction_costs.loc[date] = transaction_cost
+            except KeyError:
+                # If a KeyError occurs, set transaction cost to 0 for this date
+                transaction_costs.loc[date] = 0
+                print(f"Unable to calculate transaction costs for {date}.")
+
+            # Subtract transaction costs from portfolio returns
+        portfolio_returns["Portfolio_Returns"] -= transaction_costs
 
         portfolio_returns.index.name = None
         return portfolio_returns
@@ -150,7 +166,7 @@ class PortfolioReturns(object):
 
 if __name__ == "__main__":
     os_helper = OsHelper()
-    prices = os_helper.read_data(directory_name="base data", file_name="previous_adjusted_close.csv", index_col=0)
+    prices = os_helper.read_data(directory_name="base data", file_name="tot_retl.csv", index_col=0, sep=',')
     print(prices.head())
     weighting_df = os_helper.read_data(directory_name="transform data", file_name="inverse_metrics_weighting.csv", index_col=0)
     print(weighting_df.head())

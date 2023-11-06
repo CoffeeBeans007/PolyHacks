@@ -102,7 +102,6 @@ if __name__ == "__main__":
     risk_top_n = 120
     liquidity_top_n = 200
 
-
     filtered_data = risk_filter.apply_filters(liquidity_top_n=liquidity_top_n, risk_top_n=risk_top_n)
     print(filtered_data.head())
 
