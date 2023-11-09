@@ -3,6 +3,10 @@ import pandas as pd
 from typing import Dict, Union
 from os_helper import OsHelper
 
+import quantstats as qs
+import pandas as pd
+from typing import Dict, Union
+from os_helper import OsHelper
 
 class PerfReport(object):
     """

@@ -1,13 +1,11 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, Tuple
 from os_helper import OsHelper
 
 
 pd.set_option('display.max_columns', 40)
 pd.set_option('display.max_rows', 10)
 pd.set_option('display.width', 1000)
-
 
 class PortfolioReturns(object):
     def __init__(self, prices: pd.DataFrame, weighting_data: pd.DataFrame, rebalance_lag: int = 7, transaction_fee: float = 0.001):
@@ -23,32 +21,26 @@ class PortfolioReturns(object):
         self.prices = self._validate_price_data(prices)
         self.transaction_fee = transaction_fee
         self.rebalance_lag = rebalance_lag
-        self.weighting_df = weighting_data
         self.asset_returns = self._compute_returns()
         self.weighting_data = self._transform_allocation_data(weighting_data)
         self.drifted_weights = self._compute_drifted_weights()
         self.portfolio_returns = self.compute_portfolio_returns()
 
-    def _validate_price_data(self, asset_prices: pd.DataFrame, cutoff_date: str = '2015-01-01') -> pd.DataFrame:
+    def _validate_price_data(self, asset_prices: pd.DataFrame) -> pd.DataFrame:
         """
-        Validates and transforms the price data, keeping only the data up to the specified cutoff date.
+        Validates and transforms the price data.
 
         Args:
             asset_prices (pd.DataFrame): A DataFrame containing asset prices.
-            cutoff_date (str): The cutoff date in 'YYYY-MM-DD' format, up to which data should be retained.
 
         Returns:
-            pd.DataFrame: Transformed and filtered asset prices DataFrame.
+            pd.DataFrame: Transformed asset prices DataFrame.
         """
         # Ensure the index is a datetime
         if not isinstance(asset_prices.index, pd.DatetimeIndex):
             asset_prices.index = pd.to_datetime(asset_prices.index)
-
-        # Filter the DataFrame to include only dates up to the cutoff
-        cutoff_datetime = pd.to_datetime(cutoff_date)
-        filtered_prices = asset_prices[asset_prices.index <= cutoff_datetime]
-
-        return filtered_prices
+            asset_prices.index.name = None
+        return asset_prices
 
     def _transform_allocation_data(self, allocation_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -158,43 +150,6 @@ class PortfolioReturns(object):
         adjusted_weights.index.name = None
         return adjusted_weights
 
-    def _create_sector_mapping(self) -> Dict[str, str]:
-        """
-        Creates a mapping from tickers to sectors using the weighting data.
-
-        Returns:
-            Dict[str, str]: A dictionary mapping tickers to their respective sectors.
-        """
-        sector_mapping = self.weighting_df[['Ticker', 'Sector']].drop_duplicates().set_index('Ticker')[
-            'Sector'].to_dict()
-        return sector_mapping
-
-    def compute_sectors_returns(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """
-        Computes the drifted weights and compounded returns of sectors by mapping tickers to sectors and summing the weights.
-
-        Returns:
-            Tuple[pd.DataFrame, pd.DataFrame]: A tuple containing a DataFrame of sector-level drifted weights and a DataFrame of sector-level compounded returns.
-        """
-
-        sector_mapping = self._create_sector_mapping()
-
-        # Map each ticker in the drifted weights to its sector
-        sector_weights = self.drifted_weights.rename(columns=sector_mapping)
-
-        # Group by sector and sum the weights
-        sector_weights = sector_weights.groupby(by=sector_weights.columns, axis=1).sum()
-        sector_weights.dropna(how='all', inplace=True)
-
-        # Compute sector-level returns
-        sector_returns = sector_weights.shift(periods=1) * self.asset_returns.groupby(by=sector_mapping, axis=1).sum()
-        # Compute the compounded returns
-        sectors_compounded_returns = (1 + sector_returns).cumprod()
-        # Drop lines where NaN are in all columns
-        sectors_compounded_returns.dropna(how='all', inplace=True)
-
-        return sector_weights, sectors_compounded_returns
-
     def compute_portfolio_returns(self) -> pd.DataFrame:
         """
         Computes the overall portfolio returns based on drifted weights and asset returns.
@@ -232,7 +187,7 @@ class PortfolioReturns(object):
 
 if __name__ == "__main__":
     os_helper = OsHelper()
-    prices = os_helper.read_data(directory_name="base data", file_name="new_tot_ret.csv", index_col=0, sep=',')
+    prices = os_helper.read_data(directory_name="base data", file_name="tot_retl.csv", index_col=0, sep=',')
     print(prices.head())
     weighting_df = os_helper.read_data(directory_name="transform data", file_name="inverse_metrics_weighting.csv", index_col=0)
     print(weighting_df.head())
@@ -246,14 +201,8 @@ if __name__ == "__main__":
     portfolio_returns = pf_returns.portfolio_returns
     print(portfolio_returns.head())
 
-    sectors_drifted_weights, sectors_compounded_returns = pf_returns.compute_sectors_returns()
-    print(sectors_drifted_weights.head())
-    print(sectors_compounded_returns.head())
-
     os_helper.write_data(directory_name="final data", file_name="portfolio_returns.csv", data_frame=portfolio_returns)
     os_helper.write_data(directory_name="final data", file_name="drifted_weights.csv", data_frame=drifted_weights)
-    os_helper.write_data(directory_name="final data", file_name="sectors_drifted_weights.csv", data_frame=sectors_drifted_weights)
-    os_helper.write_data(directory_name="final data", file_name="sectors_compounded_returns.csv", data_frame=sectors_compounded_returns)
 
 
 
