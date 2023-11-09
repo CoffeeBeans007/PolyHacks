@@ -17,16 +17,28 @@ import requests
 import tensorflow
 import numba
 import math
-import file_management 
 
 
 class Rolling_Rebalance:
     
     def __init__(self,windows,data) -> None:
-        findfunction= file_management.FileManagement()
         self.windows = windows
-        self.data = findfunction.load_data(data)
+        self.data = self.load_data(data)
         pass
+
+    def load_data(self,data):
+        """
+        Load data from csv file
+        Inputs:
+        - data: str, name of csv file
+
+        Outputs:
+        - data: dataframe, dataframe of daily_returns
+        """
+        data = pd.read_csv(data)
+        data = data.set_index('Date')
+        data.index = pd.to_datetime(data.index)
+        return data
     
     
     def exponential_function(x, a):

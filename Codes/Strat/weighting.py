@@ -308,11 +308,26 @@ class InverseMetricsWeighting(object):
         print("All weights sum to 1 for each date.")
 
 
+def clean_sectors_data(sectors: pd.DataFrame):
+    sectors = sectors.T.reset_index()
+    sectors.columns = ['Ticker', 'Sector']
+    sectors['Sector'] = sectors['Sector'].str.strip()
+    return sectors
+
+
+def map_sectors_to_weighting_df(weighting_df: pd.DataFrame, sectors: pd.DataFrame) -> pd.DataFrame:
+    sectors_mapping = sectors.set_index('Ticker')['Sector'].to_dict()
+    weighting_df['Sector'] = weighting_df['Ticker'].map(sectors_mapping)
+    return weighting_df
 
 if __name__ == "__main__":
     os_helper = OsHelper()
     filtered_data = os_helper.read_data(directory_name="transform data", file_name="filtered_data.csv", index_col=0)
+    sectors = os_helper.read_data(directory_name="base data", file_name="sectors.csv")
+    sectors = clean_sectors_data(sectors=sectors)
     print(filtered_data)
+    print(sectors)
+    print(sectors['Sector'].unique())
 
     years_to_inverse = [1, 2, 3]
     metric_to_inverse = "beta"
@@ -324,6 +339,9 @@ if __name__ == "__main__":
                                                         target_metric=metric_to_inverse, weight_list=weighting_list,
                                                         min_limit=min_weight, max_limit=max_weight)
     inverse_metrics_weighting_df = inverse_metrics_weighting.compute_inverse_weighted_metrics()
+    inverse_metrics_weighting_df = map_sectors_to_weighting_df(weighting_df=inverse_metrics_weighting_df, sectors=sectors)
     print(inverse_metrics_weighting_df)
 
     os_helper.write_data(directory_name="transform data", file_name="inverse_metrics_weighting.csv", data_frame=inverse_metrics_weighting_df)
+
+

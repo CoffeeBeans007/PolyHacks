@@ -130,6 +130,8 @@ class ComputeMetrics(object):
 
     def _compute_returns(self) -> pd.DataFrame:
         returns = self.price_data.pct_change(fill_method=None).iloc[1:, :]
+        mask = self.price_data.isna()
+        returns[mask] = np.nan
         return returns
 
     def compute_average_rolling_turnover(self, rolling_window_year: int) -> pd.DataFrame:
